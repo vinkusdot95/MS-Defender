@@ -1,0 +1,6 @@
+// Detect  MDAV Registry exclusion creation attempts
+DeviceRegistryEvents
+| where Timestamp > ago(30d)
+| where RegistryKey startswith @"HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows Defender\exclusions"
+| where InitiatingProcessCommandLine !in ("","svchost.exe -k UserProfileService -p -s gpsvc","svchost.exe -k GPSvcGroup","svchost.exe -k netsvcs","svchost.exe -k netsvcs -p","svchost.exe -k netsvcs -p -s gpsvc","CcmExec.exe")
+| project-reorder Timestamp, DeviceName, ActionType, InitiatingProcessAccountName, InitiatingProcessCommandLine
