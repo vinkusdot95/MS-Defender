@@ -1,0 +1,16 @@
+// Detect  MDAV Powershell exclusion - Sentinel version
+DeviceEvents
+| where Timestamp > ago(30d)
+| where ActionType == "PowerShellCommand"
+| extend PowershellCommand=extractjson("$.Command", tostring(AdditionalFields), typeof(string))
+| where PowershellCommand startswith "Set-Mppreference -Exclusion"
+| project-reorder Timestamp, DeviceName, ActionType, InitiatingProcessAccountName, InitiatingProcessCommandLine
+
+
+// Detect  MDAV Powershell exclusion - XDR version
+DeviceEvents
+| where Timestamp > ago(1h)
+| where ActionType == "PowerShellCommand"
+| extend PowershellCommand=extractjson("$.Command", AdditionalFields, typeof(string))
+| where PowershellCommand startswith "Set-Mppreference -Exclusion"
+| project-reorder Timestamp, DeviceName, ActionType, InitiatingProcessAccountName, InitiatingProcessCommandLine
