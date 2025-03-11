@@ -1,0 +1,7 @@
+// Detect users that tries to use mpcmdrun to discover exclusions on windows endpoint
+// https://blog.fndsec.net/2024/10/04/uncovering-exclusion-paths-in-microsoft-defender-a-security-research-insight/
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where FolderPath == @"C:\Program Files\Windows Defender\MpCmdRun.exe"
+| where ProcessCommandLine has "-Scan -ScanType 3 -File"
+| project-reorder DeviceName, ActionType, FolderPath, InitiatingProcessAccountName, InitiatingProcessCommandLine
