@@ -1,0 +1,34 @@
+//Detect users added in to local admin group
+// from https://gist.github.com/alexverboon
+let ADAZUsers =  IdentityInfo |where isempty(OnPremSid)
+| extend DirectoryDomain = AccountDomain
+| extend DirectoryAccount = AccountName
+| distinct DirectoryDomain , DirectoryAccount , OnPremSid , CloudSid, AccountUpn, GivenName, Surname;
+ // check for any new created or modified local accounts
+let NewUsers =  DeviceEvents
+| where Timestamp > ago(1h)
+| where ActionType contains "UserAccountCreated"  // or ActionType contains "UserAccountModified"
+| extend lUserAdded = AccountName
+| extend NewUserSID = AccountSid
+| extend laccountdomain = AccountDomain
+| distinct NewUserSID, lUserAdded,laccountdomain;
+// Check for any local group changes and enrich the data with the account name obtained from the previous query
+DeviceEvents
+| where Timestamp > ago(1h)
+| where ActionType == 'UserAccountAddedToLocalGroup'
+//| extend AddedAccountSID = tostring(parse_json(AdditionalFields).MemberSid)
+| extend LocalGroupSID = tostring(parse_json(AdditionalFields).GroupSid)
+| extend LocalGroup = AccountName
+//| extend LocalGroupSID = AccountSid
+| extend AddedAccountSID = AccountSid
+| extend Actor = trim(@"[^\w]+",InitiatingProcessAccountName)
+| join kind= leftouter    (NewUsers)
+on $left.AddedAccountSID == $right.NewUserSID
+| project Timestamp, DeviceName, LocalGroup,LocalGroupSID, AddedAccountSID, lUserAdded , Actor, ActionType , laccountdomain, ReportId
+// limit to local administrators group
+| where LocalGroupSID contains "S-1-5-32-544"
+| join kind= leftouter        (ADAZUsers)
+on $left.AddedAccountSID == $right.OnPremSid
+| extend UserAdded = iff(isnotempty(lUserAdded),strcat(laccountdomain,"\\", lUserAdded), strcat(DirectoryDomain,"\\", DirectoryAccount))
+| where DeviceName !contains Actor
+| project Timestamp, DeviceName, LocalGroup,LocalGroupSID, AddedAccountSID, UserAdded , Actor, ActionType, ReportId
