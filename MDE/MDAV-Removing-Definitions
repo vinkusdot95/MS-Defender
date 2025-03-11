@@ -1,0 +1,6 @@
+// Detect MDAV attempts to removing definitions
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where FolderPath == @"C:\Program Files\Windows Defender\MpCmdRun.exe"
+| where ProcessCommandLine has "RemoveDefinitions"
+| project-reorder Timestamp, DeviceName, ActionType, FolderPath, InitiatingProcessAccountName, InitiatingProcessCommandLine
