@@ -1,0 +1,6 @@
+// Detect users that tries to revert to old MDAV platform
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where FolderPath == @"C:\Program Files\Windows Defender\MpCmdRun.exe"
+| where ProcessCommandLine has "RevertPlatform"
+| project-reorder Timestamp, DeviceName, ActionType, FolderPath, InitiatingProcessAccountName, InitiatingProcessCommandLine
