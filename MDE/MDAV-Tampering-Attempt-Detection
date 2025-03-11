@@ -1,0 +1,18 @@
+//Detect Tampering Attempt on Windows Endpoints
+// from : https://cloudbrothers.info/en/current-limits-defender-av-tamper-protection/ added some filters to avoid false positive
+DeviceEvents
+| where Timestamp > ago(1h)
+| where ActionType contains "TamperingAttempt"
+| extend AdditionalFields = todynamic(AdditionalFields)
+| extend TamperingAction = tostring(AdditionalFields.['TamperingAction'])
+| extend Status = tostring(AdditionalFields.['Status'])
+| extend Target = tostring(AdditionalFields.['Target'])
+| extend TargetProperty = replace_regex(Target,@"(.*)\\(.*)",@"\2")
+| extend OriginalValue = tostring(AdditionalFields.['OriginalValue'])
+| extend TamperingAttemptedValue = tostring(AdditionalFields.['TamperingAttemptedValue'])
+| where ( TargetProperty startswith "Disable" and TamperingAttemptedValue == 1 ) or ( TargetProperty == "SpynetReporting" and TamperingAttemptedValue == 0 ) or  ( Target contains "ThreatSeverityDefaultAction" )
+| where InitiatingProcessCommandLine !in ("","svchost.exe -k UserProfileService -p -s gpsvc","wmiprvse.exe -secured -Embedding","svchost.exe -k GPSvcGroup","svchost.exe -k netsvcs -p -s gpsvc","svchost.exe -k netsvcs -p","svchost.exe -k netsvcs","CcmExec.exe","ConfigSecurityPolicy.exe")
+| where InitiatingProcessFileName !in ("ConfigSecurityPolicy.exe")
+| where Status != "Ignored"
+| extend TargetProperty = iff( ( TargetProperty matches regex @"\d" ), strcat("ThreatSeverityDefaultAction-",TargetProperty), TargetProperty)
+| project Timestamp, DeviceName, TamperingAction, Status, TargetProperty, OriginalValue, TamperingAttemptedValue,InitiatingProcessCommandLine,InitiatingProcessAccountName,InitiatingProcessAccountSid,ReportId,DeviceId
