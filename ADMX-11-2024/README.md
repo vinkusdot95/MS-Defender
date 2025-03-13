@@ -1,11 +1,6 @@
 | ﻿"Parent Category" | Name | Display Name | Class | Explaining Text | Supported On | Type | Label | Registry Key | Value Name | Possible Values |
 |------------------|----|------------|-----|---------------|------------|----|-----|------------|----------|---------------|
-| Features | DeviceControlEnabled | Device Control | Machine | 
-        Enable or Disable Defender Device Control on this machine.
-        Note: You must be enrolled as E3 or E5 in order for Device Control to be enabled.
-     | At least Windows Server 2016, Windows 10 Version 1607 | policy |  | Software\Policies\Microsoft\Windows Defender\Features | DeviceControlEnabled | Policy value:
-   1 (Enabled)
-   0 (Disabled) |
+| Features | DeviceControlEnabled | Device Control | Machine | Enable or Disable Defender Device Control on this machine. Note: You must be enrolled as E3 or E5 in order for Device Control to be enabled.| At least Windows Server 2016, Windows 10 Version 1607 | policy |  | Software\Policies\Microsoft\Windows Defender\Features | DeviceControlEnabled | Policy value:   1 (Enabled)   0 (Disabled) |
 | Device Control | DeviceControl_PolicyGroups | Define device control policy groups | Machine | 
         Please follow the device control policy groups xml schema to fill out the policy groups data. 
         Alternatively you could use a file path containing the XML groups data.
