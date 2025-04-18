@@ -4,20 +4,15 @@
 
 DeviceProcessEvents
 | where Timestamp > ago(1h)
+| join kind=inner (
+    DeviceInfo
+    | where MachineGroup == "DG-WK_Linux" //if needed define devicegroup that contains linux devices
+    | summarize arg_max(Timestamp, *) by DeviceId  // deduplicate by latest info per device
+    | project DeviceId, MachineGroup
+) on DeviceId
 | where ProcessCommandLine has "mdeattach_managed.json"
-// Match common file deletion tools and techniques
 | where FileName in~ (
-    "rm",              // standard file deletion
-    "unlink",          // low-level deletion command
-    "shred",           // secure file deletion with overwrite
-    "find",            // used with -exec rm or -delete
-    "perl",            // file deletion via Perl script (unlink function)
-    "python",          // file deletion via os.remove() or Path.unlink()
-    "bash",            // shell scripts containing deletion logic
-    "mv",              // overwriting or moving file to /dev/null
-    "cp",              // copying an empty file over target
-    "echo",            // overwriting file content with empty string
-    "dd",              // overwriting file using block device logic
-    "truncate"         // setting file size to 0 (effectively wiping it)
+    "rm", "unlink", "shred", "find", "perl", "python", "bash", "mv", "cp", "echo", "dd", "truncate"
 )
-| project Timestamp, DeviceName, ReportId, InitiatingProcessAccountName, FileName, ProcessCommandLine, FolderPath, InitiatingProcessFileName
+// remove duplicates by relevant fields
+| distinct Timestamp, DeviceName, MachineGroup, ReportId, InitiatingProcessAccountName, FileName, ProcessCommandLine, FolderPath, InitiatingProcessFileName
