@@ -1,6 +1,6 @@
 //Detect users that tries to remove managed.json to "tampering" protection
 // MDE on linux already detects modification in to managed.json file but not removal
-// works with MDE attached devices, but also with no mdeattach if you replace the good file name in to line 7
+// works with MDE attached devices, but also with no mdeattached ones if you replace the good file name in to line 7
 
 DeviceProcessEvents
 | where Timestamp > ago(1h)
