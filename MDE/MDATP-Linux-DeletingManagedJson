@@ -15,4 +15,4 @@ DeviceProcessEvents
     "rm", "unlink", "shred", "find", "perl", "python", "bash", "mv", "cp", "echo", "dd", "truncate"
 )
 // remove duplicates by relevant fields
-| distinct Timestamp, DeviceName, MachineGroup, ReportId, InitiatingProcessAccountName, FileName, ProcessCommandLine, FolderPath, InitiatingProcessFileName
+| distinct Timestamp, DeviceName, DeviceId, MachineGroup, ReportId, InitiatingProcessAccountName, FileName, ProcessCommandLine, FolderPath, InitiatingProcessFileName
