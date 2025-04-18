@@ -1,0 +1,23 @@
+//Detect users that tries to remove managed.json to "tampering" protection
+// MDE on linux already detects modification in to managed.json file but not removal
+// works with MDE attached devices, but also with no mdeattach if you replace the good file name in to line 7
+
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where ProcessCommandLine has "mdeattach_managed.json"
+// Match common file deletion tools and techniques
+| where FileName in~ (
+    "rm",              // standard file deletion
+    "unlink",          // low-level deletion command
+    "shred",           // secure file deletion with overwrite
+    "find",            // used with -exec rm or -delete
+    "perl",            // file deletion via Perl script (unlink function)
+    "python",          // file deletion via os.remove() or Path.unlink()
+    "bash",            // shell scripts containing deletion logic
+    "mv",              // overwriting or moving file to /dev/null
+    "cp",              // copying an empty file over target
+    "echo",            // overwriting file content with empty string
+    "dd",              // overwriting file using block device logic
+    "truncate"         // setting file size to 0 (effectively wiping it)
+)
+| project Timestamp, DeviceName, ReportId, InitiatingProcessAccountName, FileName, ProcessCommandLine, FolderPath, InitiatingProcessFileName
