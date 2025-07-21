@@ -1,5 +1,6 @@
 //detect usage of MpCmdRun.exe -Restore => users trying to restore malware from quarantine"
 //GUI restore are not available using MDE telemetry, at this time we should use event viewer to find out the event id 1009 in defender (Applications and Services Logs / Microsoft /Windows/Windows Defender/Operationnal)
+// meaning using sentinel or other SIEM tool
 DeviceProcessEvents
 | where Timestamp > ago(1h)
 | where FileName =~ "MpCmdRun.exe"
