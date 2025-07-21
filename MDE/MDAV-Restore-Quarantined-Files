@@ -1,0 +1,6 @@
+//detect usage of MpCmdRun.exe -Restore => users trying to restore malware from quarantine"
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where FileName =~ "MpCmdRun.exe"
+| where ProcessCommandLine has "-Restore"
+| project Timestamp,DeviceName,InitiatingProcessAccountName,FileName,ProcessCommandLine,FolderPath,SHA1
