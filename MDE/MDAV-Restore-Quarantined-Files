@@ -1,4 +1,4 @@
-//detect usage of MpCmdRun.exe -Restore => users trying to restore malware from quarantine"
+//detect usage of MpCmdRun.exe -Restore => users trying to restore malware from quarantine using MpCmdRun.exe"
 DeviceProcessEvents
 | where Timestamp > ago(1h)
 | where FileName =~ "MpCmdRun.exe"
