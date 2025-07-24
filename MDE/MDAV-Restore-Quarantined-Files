@@ -6,3 +6,14 @@ DeviceProcessEvents
 | where FileName =~ "MpCmdRun.exe"
 | where ProcessCommandLine has "-Restore"
 | project Timestamp,DeviceName,InitiatingProcessAccountName,FileName,ProcessCommandLine,FolderPath,SHA1,DeviceId,ReportId
+
+//Detect usage of GUI to restore malware : Sentinel + ama + DCR are prerequisites + ARC for on premises server
+// XPATH string to get all mdav event : Microsoft-Windows-Windows Defender/Operational!*
+Event
+| where EventLog == "Microsoft-Windows-Windows Defender/Operational"
+| where EventID == "1009"
+| extend RawData = tostring(EventData)
+| extend User = extract("(?i)<Data Name=\"User\">(.*?)</Data>", 1, RawData)
+| extend FileName = extract("(?i)<Data Name=\"Path\">(.*?)</Data>", 1, RawData)
+| extend ThreatName = extract("(?i)<Data Name=\"Threat Name\">(.*?)</Data>", 1, RawData)
+| project TimeGenerated, Computer, User, FileName, ThreatName
