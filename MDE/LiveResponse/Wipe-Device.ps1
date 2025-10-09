@@ -1,3 +1,5 @@
+#Working on my lab using W10 w/ MDE/MDAV/Bitlocker
+
 $ErrorActionPreference = 'Stop'
 
 try {
