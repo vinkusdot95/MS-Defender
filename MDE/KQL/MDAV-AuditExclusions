@@ -1,0 +1,37 @@
+let ExcludedPathPrefixes = dynamic([
+    "c:\\program files\\myapp",
+    "c:\\tools",
+    "d:\\backup"
+]);
+DeviceProcessEvents
+| where Timestamp > ago(90d)
+| mv-expand Prefix = ExcludedPathPrefixes to typeof(string)
+| where FolderPath startswith Prefix
+| summarize
+    ExclusionRule = any(Prefix),
+    LastActivity = max(Timestamp),
+    ExecutionCount = count(),
+    DeviceCount = dcount(DeviceName),
+    DeviceList = make_set(DeviceName),
+    ProcessList = make_set(FileName)
+    by FullPath = FolderPath
+| extend
+    DaysSinceLastSeen = datetime_diff('day', now(), LastActivity),
+    Machines = strcat_array(DeviceList, "; "),
+    Processes = strcat_array(ProcessList, "; ")
+| project
+    ExclusionRule,
+    ExcludedPath = FullPath,
+    Processes,
+    LastActivity,
+    DaysInactive = DaysSinceLastSeen,
+    Executions = ExecutionCount,
+    DeviceCount,
+    Machines,
+    Recommendation = case(
+        DaysSinceLastSeen > 90, "Delete - not used since 90d",
+        DaysSinceLastSeen > 60, "Evaluate - not used since 60d",
+        ExecutionCount < 10, "Evaluate - not used since 10d",
+        "Keep , in use"
+    )
+| order by DaysInactive desc
