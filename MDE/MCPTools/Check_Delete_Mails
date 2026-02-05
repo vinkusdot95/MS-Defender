@@ -1,0 +1,15 @@
+let TargetEmail = "{email_address}";
+let TimeRange = 10d;
+OfficeActivity
+| where TimeGenerated > ago(TimeRange)
+| where OfficeWorkload == "Exchange"
+| where UserId == TargetEmail
+| where Operation has_any ("HardDelete","MoveToDeletedItems","SoftDelete")
+| extend 
+    Subject = tostring(parse_json(AffectedItems)[0].Subject)
+| project 
+    Subject,
+    Operation,
+    ResultStatus,
+    UserId,
+    ClientIP
