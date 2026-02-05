@@ -1,0 +1,21 @@
+let DeviceName = "{device_name}";
+DeviceTvmSoftwareVulnerabilities
+| where DeviceName =~ DeviceName
+| join kind=inner (
+    DeviceTvmSoftwareVulnerabilitiesKB
+    | project CveId, CvssScore, IsExploitAvailable, VulnerabilityDescription
+) on CveId
+| join kind=inner (
+    DeviceTvmSoftwareInventory
+    | project DeviceName, SoftwareName, SoftwareVersion, SoftwareVendor
+) on DeviceName
+| project 
+    DeviceName,
+    CveId,
+    CvssScore,
+    VulnerabilitySeverityLevel,
+    IsExploitAvailable,
+    SoftwareName,
+    SoftwareVersion,
+    VulnerabilityDescription
+| sort by CvssScore desc
