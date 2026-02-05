@@ -1,0 +1,40 @@
+AuditLogs
+| where TimeGenerated >= ago("{hours}"h)
+| where InitiatedBy.user.userPrincipalName == "{UPN}"
+| extend 
+    // User info
+    UserPrincipalName = tostring(InitiatedBy.user.userPrincipalName),
+    IPAddress = tostring(InitiatedBy.user.ipAddress),
+    UserId = tostring(InitiatedBy.user.id),
+    // Target resource details - AVANT le mv-expand
+    TargetName = tostring(TargetResources[0].displayName),
+    TargetType = tostring(TargetResources[0].type),
+    TargetId = tostring(TargetResources[0].id),
+    TargetUPN = tostring(TargetResources[0].userPrincipalName)
+| mv-expand AdditionalDetails
+| extend DetailKey = tostring(AdditionalDetails.key)
+| extend DetailValue = tostring(AdditionalDetails.value)
+| summarize 
+    UserAgent = maxif(DetailValue, DetailKey == "User-Agent"),
+    AppId = maxif(DetailValue, DetailKey == "AppId"),
+    TargetResources = any(TargetResources)
+    by TimeGenerated, OperationName, Result, Category, UserPrincipalName, IPAddress, UserId, TargetName, TargetType, TargetId, TargetUPN
+| mv-expand ModifiedProps = TargetResources[0].modifiedProperties
+| extend
+    PropertyName = tostring(ModifiedProps.displayName),
+    OldValue = tostring(ModifiedProps.oldValue),
+    NewValue = tostring(ModifiedProps.newValue)
+| project 
+    TimeGenerated,
+    UserPrincipalName,
+    IPAddress,
+    UserAgent,
+    OperationName,
+    Result,
+    TargetType,
+    TargetName,
+    TargetUPN,
+    PropertyName,
+    OldValue,
+    NewValue
+| order by TimeGenerated desc, PropertyName asc
